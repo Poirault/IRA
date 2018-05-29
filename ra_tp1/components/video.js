@@ -12,7 +12,9 @@ arcs_module(function(ARCS) {
                     video.src = window.webkitURL.createObjectURL(stream);
                 } else if (video.mozSrcObject !== undefined) {
                     video.mozSrcObject = stream;
-                } else {
+                } else if (video.srcObject !== undefined) {
+                    video.srcObject = stream;
+                } else {                    
                     video.src = stream;
                 }                
                 video.videoWidth=defaultWidth;                
