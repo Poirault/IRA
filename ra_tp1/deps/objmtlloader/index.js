@@ -1,3 +1,5 @@
+arcs_module(function(ARCS, __THREE) {
+
 /**
  * Loads a Wavefront .obj file with materials
  *
@@ -358,3 +360,5 @@ THREE.OBJMTLLoader.prototype = {
 };
 
 THREE.EventDispatcher.prototype.apply( THREE.OBJMTLLoader.prototype );
+return {};
+}, ['deps/three.js/index']);

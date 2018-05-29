@@ -1,3 +1,6 @@
+arcs_module(function(ARCS, __THREE) {
+
+
 /**
  * @author mrdoob / http://mrdoob.com/
  */
@@ -327,3 +330,7 @@ THREE.OBJLoader.prototype = {
 	}
 
 };
+
+return {};
+
+}, ['deps/three.js/index']);

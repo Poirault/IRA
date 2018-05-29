@@ -1,3 +1,5 @@
+arcs_module(function(ARCS, __THREE) {
+
 /**
  * Loads a Wavefront .mtl file specifying materials
  *
@@ -428,3 +430,5 @@ THREE.MTLLoader.nextHighestPowerOfTwo_ = function( x ) {
 };
 
 THREE.EventDispatcher.prototype.apply( THREE.MTLLoader.prototype );
+return {};
+}, ['deps/three.js/index']);
