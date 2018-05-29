@@ -41,8 +41,7 @@
             { "destination": "viewer", "slot": "setIntrinsics", "value": [ [640 , 0 , 160, 0, 480, 120, 0 ,0, 1 ]]},
             { "destination": "objectTransform", "slot": "setId", "value": [ 17 ] },
             { "destination": "objectTransform2", "slot": "setId", "value": [ 321 ] },
-            { "destination": "viewer", "slot": "setSceneId", "value": [17] },
-            { "destination": "viewer", "slot": "setSceneId", "value": [321] },
+            { "destination": "viewer", "slot": "setSceneId", "value": [17,321] },
             { "destination":"locator", "slot":"setImageSource", "value":["canvas"]},
             { "destination": "locator", "slot":"setModelSize", "value":[0.07]},
             { "destination": "locator", "slot": "setIntrinsics", "value": [ [ 640 , 0 , 160, 0, 480, 120, 0 ,0, 1 ] ]}
