@@ -47,7 +47,7 @@
             { "destination": "locator", "slot": "setIntrinsics", "value": [ [ 640 , 0 , 160, 0, 480, 120, 0 ,0, 1 ] ]}
         ],
         "postconnections": [
-            { "destination": "objectLoader", "slot": "load", "value": ["al3.obj","al2.mtl"] },
+            { "destination": "objectLoader", "slot": "load", "value": ["soldatnoir.obj","soldatnoir.mtl"] },
             { "destination": "objectLoader2", "slot": "load", "value": ["al3.obj","al2.mtl"] }
         ],
         "connections": [
