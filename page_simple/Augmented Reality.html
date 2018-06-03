@@ -12,17 +12,19 @@
   <script>
     var video, canvas, context, imageData, detector, posit;
     var renderer;
+    // scene1 = scene de debug, a gauche sur la page web
+    // scene1 = scene de jeu, a droite sur la page web
+    // pareil pour camera 1 et 2
     var scene1, scene2;
     var camera1, camera2;
     var texture;
     var scale = .35; //millimeters
-    var boardOffset = 3;
-    var boardWidth = 5;
+    var boardWidth = 10;
     var boardHeight = .1;
     var unitLength = boardWidth/8;
     var game;
 
-    function makeBox(name, w,h,d, texturePath){
+    function makeBox(name, w,h,d, texturePath=null){
       var object = new THREE.Object3D(),
         geometry = new THREE.BoxGeometry(w,h,d),
         texture = THREE.ImageUtils.loadTexture(texturePath),
@@ -36,7 +38,7 @@
     }
 
     class ChessPiece{
-      constructor(name, dim, pos, texturePath){
+      constructor(name, dim, pos, texturePath=null){
         this.xBoard = pos[0];
         this.yBoard = pos[1];
         this.zBoard = pos[2];
@@ -46,18 +48,26 @@
 
     class Game{
       constructor(){
-        this.ref = new THREE.Object3D();
+        this.ref = new THREE.Object3D(); // positionné au niveau du marqueur de plateau pour faire reference
         this.board = new ChessPiece("board", [boardWidth, boardWidth, boardHeight], [0, 5, 0], "textures/board.jpg");
-        // this.board = new ChessPiece([5,5,.2],4,4,"textures/chess.jpg");
         this.king = new ChessPiece("king", [.2, .2, .2], [1, 1, boardHeight], "textures/white.png");
         this.queen = new ChessPiece("king", [.1, .1, .4], [4, 4, boardHeight], "textures/white.png");
-        // console.log(this.board.position);
-        // console.log(this.king.object.position);
+
+        this.anchors = [];
+        for(var i=1; i<=8; i++){
+          for(var j=1; j<=8; j++){
+            this.anchors.push(new ChessPiece("anchor"+(i+(j-1)*8), [.5,.5,.1], [i,j,boardHeight]));
+          }
+        }
+
+        // definition de l'arborescence
         this.ref.add(this.board.object);
         this.pieces = [this.king, this.queen];
-        var i;
-        for(i=0; i<this.pieces.length; ++i){
+        for(var i=0; i<this.pieces.length; ++i){
           this.board.object.add(this.pieces[i].object);
+        }
+        for(var i=0; i<this.anchors.length;++i){
+          this.board.object.add(this.anchors[i].object);
         }
       }
     }
@@ -185,8 +195,6 @@
       scene1.add(texture);
 
       scene2.add(game.ref);
-
-      //console.log(scene2);
     };
 
     function createTexture(){
@@ -204,42 +212,65 @@
     };
 
     function updateScenes(markers){
-      var corners, corner, pose, i;
-      var marker, found;
+      var corner, pose, i;
+      var closestAnchor;
+      // marker17 : placement du plateau
+      // marker321 : selection de la case de départ
+      // marker 500 : selecion de la case d'arrivée
+      //marker 160 : validation
+      var corners17, corners160, corners321, corners500;
 
-      found = false;
+      // Detection des marqueurs
       if (markers.length > 0){
         for(i = 0; i < markers.length; ++ i){
           if (markers[i].id == 17){
-            found = true;
-            corners = markers[i].corners;
+            corners17 = markers[i].corners;
+          }
+          else if (markers[i].id == 160){
+            corners160 = markers[i].corners;
+          }
+          else if (markers[i].id == 321){
+            corners321 = markers[i].corners;
+          }
+          else if (markers[i].id == 500){
+            corners500 = markers[i].corners;
           }
         }
       }
 
-      if(found){
-        for (i = 0; i < corners.length; ++ i){
-          corner = corners[i];
-          corner.x = corner.x - (canvas.width / 2);
-          corner.y = (canvas.height / 2) - corner.y;
+      var markersCorners = [corners17, corners160, corners321, corners500];
+      for(i=0; i<markersCorners.length; ++i){
+        if(markersCorners[i]){
+          for (j = 0; j < markersCorners[i].length; ++j){
+            corner = markersCorners[i][j];
+            corner.x = corner.x - (canvas.width / 2);
+            corner.y = (canvas.height / 2) - corner.y;
+          }
         }
-
-        pose = posit.pose(corners);
-
-        updateBasis(game.ref, pose.bestRotation, pose.bestTranslation);
-        // var basis = ref.matrix.makeBasis;
-        // updateBasis(basisObject, pose.bestRotation, pose.bestTranslation);
-        // updateBasis(game.board.object, pose.bestRotation, pose.bestTranslation);
-        // updateBasis(game.king.object, pose.bestRotation, pose.bestTranslation);
-        updateBoard(game.board);
-        var i;
-        for(i=0; i<game.pieces.length; ++i){
-          updatePiece(game.pieces[i]);
-        }
-        //console.log(scene2);
       }
 
-      texture.children[0].material.map.needsUpdate = true;
+
+      // Mise a jour des positions des composants en réalité virtuelle
+      if(corners17){
+        pose = posit.pose(corners17);
+        updateBasis(game.ref, pose.bestRotation, pose.bestTranslation);
+        updateBoard(game.board);
+        for(var i=0; i<game.anchors.length; ++i){
+          updatePiece(game.anchors[i]);
+        }
+        for(var i=0; i<game.pieces.length; ++i){
+          updatePiece(game.pieces[i]);
+        }
+      }
+
+      // Selection du point de départ
+      if(corners321){
+        pose = posit.pose(corners321);
+        closestAnchor = findClosestAnchor(game, pose.bestTranslation);
+        changeTexture(closestAnchor.object, "textures/green.png");
+      }
+
+    texture.children[0].material.map.needsUpdate = true;
     };
 
     function updateBasis(basis, rotation, translation){
@@ -257,8 +288,8 @@
     };
 
     function updatePiece(piece){
-      piece.object.position.x = (piece.xBoard-.5)*unitLength;
-      piece.object.position.y = (piece.yBoard-.5)*unitLength;
+      piece.object.position.x = (piece.xBoard-4.5)*unitLength;
+      piece.object.position.y = (piece.yBoard-4.5)*unitLength;
       piece.object.position.z = piece.zBoard*unitLength;
     }
 
@@ -268,25 +299,27 @@
       piece.object.position.z = piece.zBoard*unitLength;
     }
 
-    function updateTransform(piece, rotation, translation){
-      var actualTranslation = JSON.parse(JSON.stringify(translation));
-      console.log("translation " + translation);
-      console.log(piece.object);
-      piece.object.scale.x = scale;
-      piece.object.scale.y = scale;
-      piece.object.scale.z = scale;
+    function findClosestAnchor(game, translation){
+      var minDistance, distance, anchorPos, minAnchor;
+      selectionPos = new THREE.Vector3(translation[0], translation[1], translation[2]);
+      anchorPos = new THREE.Vector3();
+      for(var i=0; i<game.anchors.length; ++i){
+        anchorPos.setFromMatrixPosition( game.anchors[i].object.matrixWorld );
+        distance =  anchorPos.distanceTo(selectionPos);
+        // console.log(selectionPos.toArray() + " || " + anchorPos.toArray() + " || " + distance);
+        if(!minDistance || distance < minDistance){
+          minDistance = distance;
+          minAnchor = game.anchors[i];
+        }
+      }
+      console.log(minAnchor.object.name + " | " + selectionPos.toArray());
+      return minAnchor;
+    }
 
-      piece.object.rotation.x = -Math.asin(-rotation[1][2]);
-      piece.object.rotation.y = -Math.atan2(rotation[0][2], rotation[2][2]);
-      piece.object.rotation.z = Math.atan2(rotation[1][0], rotation[1][1]);
-
-      piece.object.position.x = actualTranslation[0];
-      piece.object.position.y = actualTranslation[1];
-      piece.object.position.z = -actualTranslation[2];
-      // piece.object.position.x = translation[0];
-      // piece.object.position.y = translation[1];
-      // piece.object.position.z = -translation[2];
-    };
+    function changeTexture(object, src){
+      object.children[0].material.map = THREE.ImageUtils.loadTexture(src);
+      object.children[0].material.needsUpdate = true;
+    }
 
     window.onload = onLoad;
   </script>
