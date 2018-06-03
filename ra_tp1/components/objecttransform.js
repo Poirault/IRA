@@ -2,7 +2,7 @@ arcs_module(
     function(ARCS,_three) {
         var ObjectTransform ;
 
-        /** 
+        /**
          * @class ObjectTransform
          * @classdesc Apply transformations to objects
          */
@@ -22,7 +22,7 @@ arcs_module(
                     obj.parent.add(objRoot);
                     obj.parent.remove(obj);
                     objRoot.add(obj);
-                    
+
                     var box = new THREE.Box3;
                     box.setFromObject(obj);
                     var s = box.size();
@@ -30,7 +30,7 @@ arcs_module(
                     console.log(scale);
                     obj.add(new THREE.AxisHelper(scale / 2));
                 };
-                
+
                 var MAX3 = function (a,b,c) {
                     if ( a >= b ) {
                          if ( a >= c) {
@@ -47,17 +47,17 @@ arcs_module(
                     }
                 };
 
-                
-                
+
+
                 // right now, we make something compatible with aruco markers
                 // it may evolve in the future
-                
+
                 /**
-                 * Takes an array of markers and then applies transformations 
+                 * Takes an array of markers and then applies transformations
                  * to the referenced object.
                  * @function ObjectTransform#setTransform
                  * @param arr {array} an array of detected markers.
-                 */                
+                 */
                 this.setTransform = function ( arr ) {
                     /*2 set here the transformation we should apply on objRoot
                      *  Each marker has 3 major properties :
@@ -72,23 +72,23 @@ arcs_module(
                     for ( i = 0; i < arr.length; i++) {
                         if ( arr[i].id === id ) {
                             // insert your code here to modify objRoot
-                                        
+
                             var R = arr[i].pose.rotation;
                             var T = arr[i].pose.position;
                             var mat = new THREE.Matrix4(R[0][0],R[0][1],R[0][2],T[0],
                                                         R[1][0],R[1][1],R[1][2],T[1],
-                                                        R[2][0],R[2][1],R[2][2],T[2],
+                                                        R[2][0],R[2][1]+3.14,R[2][2],T[2], // On rajoute une rotation de pi pour avoir une vue de dessus.
                                                         0,0,0,1);
 
                             objRoot.setRotationFromMatrix(mat);
                             objRoot.position.x = mat.elements[12];
                             objRoot.position.y = mat.elements[13];
-                            objRoot.position.z = mat.elements[14];   
+                            objRoot.position.z = mat.elements[14];
 
                         }
                     }
                 };
-                
+
                 this.setId = function (i) {
                     id = i;
                 };

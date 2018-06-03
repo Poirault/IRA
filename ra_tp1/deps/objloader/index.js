@@ -48,7 +48,7 @@ THREE.OBJLoader.prototype = {
 			return new THREE.Face3( a, b, c, normals );
 
 		}
-		
+
 		var object = new THREE.Object3D();
 		var geometry, material, mesh;
 
@@ -75,7 +75,7 @@ THREE.OBJLoader.prototype = {
 			return index >= 0 ? index - 1 : index + uvs.length;
 
 		}
-		
+
 		function add_face( a, b, c, normals_inds ) {
 
 			if ( normals_inds === undefined ) {
@@ -102,9 +102,9 @@ THREE.OBJLoader.prototype = {
 			}
 
 		}
-		
+
 		function add_uvs( a, b, c ) {
-	  
+
 			geometry.faceVertexUvs[ 0 ].push( [
 				uvs[ parseUVIndex( a ) ].clone(),
 				uvs[ parseUVIndex( b ) ].clone(),
@@ -112,13 +112,13 @@ THREE.OBJLoader.prototype = {
 			] );
 
 		}
-		
+
 		function handle_face_line(faces, uvs, normals_inds) {
 
 			if ( faces[ 3 ] === undefined ) {
-				
+
 				add_face( faces[ 0 ], faces[ 1 ], faces[ 2 ], normals_inds );
-				
+
 				if ( uvs !== undefined && uvs.length > 0 ) {
 
 					add_uvs( uvs[ 0 ], uvs[ 1 ], uvs[ 2 ] );
@@ -126,7 +126,7 @@ THREE.OBJLoader.prototype = {
 				}
 
 			} else {
-				
+
 				if ( normals_inds !== undefined && normals_inds.length > 0 ) {
 
 					add_face( faces[ 0 ], faces[ 1 ], faces[ 3 ], [ normals_inds[ 0 ], normals_inds[ 1 ], normals_inds[ 3 ] ] );
@@ -138,7 +138,7 @@ THREE.OBJLoader.prototype = {
 					add_face( faces[ 1 ], faces[ 2 ], faces[ 3 ] );
 
 				}
-				
+
 				if ( uvs !== undefined && uvs.length > 0 ) {
 
 					add_uvs( uvs[ 0 ], uvs[ 1 ], uvs[ 3 ] );
@@ -147,7 +147,7 @@ THREE.OBJLoader.prototype = {
 				}
 
 			}
-			
+
 		}
 
 		// create mesh if no objects in text
@@ -189,7 +189,7 @@ THREE.OBJLoader.prototype = {
 
 		var face_pattern3 = /f( +(-?\d+)\/(-?\d+)\/(-?\d+))( +(-?\d+)\/(-?\d+)\/(-?\d+))( +(-?\d+)\/(-?\d+)\/(-?\d+))( +(-?\d+)\/(-?\d+)\/(-?\d+))?/;
 
-		// f vertex//normal vertex//normal vertex//normal ... 
+		// f vertex//normal vertex//normal vertex//normal ...
 
 		var face_pattern4 = /f( +(-?\d+)\/\/(-?\d+))( +(-?\d+)\/\/(-?\d+))( +(-?\d+)\/\/(-?\d+))( +(-?\d+)\/\/(-?\d+))?/
 
@@ -214,7 +214,7 @@ THREE.OBJLoader.prototype = {
 
 				// ["v 1.0 2.0 3.0", "1.0", "2.0", "3.0"]
 
-				vertices.push( 
+				vertices.push(
 					geometry.vertices.push(
 						vector(
 							result[ 1 ], result[ 2 ], result[ 3 ]
@@ -253,7 +253,7 @@ THREE.OBJLoader.prototype = {
 			} else if ( ( result = face_pattern2.exec( line ) ) !== null ) {
 
 				// ["f 1/1 2/2 3/3", " 1/1", "1", "1", " 2/2", "2", "2", " 3/3", "3", "3", undefined, undefined, undefined]
-				
+
 				handle_face_line(
 					[ result[ 2 ], result[ 5 ], result[ 8 ], result[ 11 ] ], //faces
 					[ result[ 3 ], result[ 6 ], result[ 9 ], result[ 12 ] ] //uv
@@ -324,7 +324,7 @@ THREE.OBJLoader.prototype = {
 			geometry.computeBoundingSphere();
 
 		}
-		
+
 		return object;
 
 	}
