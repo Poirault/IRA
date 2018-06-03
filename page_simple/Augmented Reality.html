@@ -71,14 +71,14 @@
         }
       }
 
-      function getPiece(x,y){
+      getPiece(x,y){
         for(var i=0; i<this.pieces.length; ++i){
           if(this.pieces[i].xBoard == x && this.pieces[i].yBoard == y){
             return this.pieces[i];
           }
         }
       }
-      function getAnchor(x,y){
+      getAnchor(x,y){
         for(var i=0; i<this.anchors.length; ++i){
           if(this.anchors[i].xBoard == x && this.anchors[i].yBoard == y){
             return this.pieces[i];
