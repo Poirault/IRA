@@ -36,36 +36,28 @@
     }
 
     class ChessPiece{
-      constructor(name, dim, x, y, texturePath){
-        this.xBoard = x;
-        this.yBoard = y;
-        this.zBoard = .2;
-        var w = dim[0],
-          h = dim[1],
-          d = dim[2];
-        this.object = makeBox(name, w,h,d, texturePath);
+      constructor(name, dim, pos, texturePath){
+        this.xBoard = pos[0];
+        this.yBoard = pos[1];
+        this.zBoard = pos[2];
+        this.object = makeBox(name, dim[0], dim[1], dim[2], texturePath);
       }
     }
 
     class Game{
       constructor(){
         this.ref = new THREE.Object3D();
-        this.board = new ChessPiece("board", [boardWidth, boardWidth, boardHeight], 5, 10, "textures/board.jpg");
+        this.board = new ChessPiece("board", [boardWidth, boardWidth, boardHeight], [0, 5, 0], "textures/board.jpg");
         // this.board = new ChessPiece([5,5,.2],4,4,"textures/chess.jpg");
-        this.king = new ChessPiece("king", [.2, .2, .2], 1, 4, "textures/white.png");
+        this.king = new ChessPiece("king", [.2, .2, .2], [1, 1, boardHeight], "textures/white.png");
+        this.queen = new ChessPiece("king", [.1, .1, .4], [4, 4, boardHeight], "textures/white.png");
         // console.log(this.board.position);
         // console.log(this.king.object.position);
         this.ref.add(this.board.object);
-        this.ref.add(this.king.object);
-        this.pieces = [this.king];
-      }
-
-      addToScene(scene){
-        scene.add(this.ref)
-        this.ref.add(this.board.object);
+        this.pieces = [this.king, this.queen];
         var i;
         for(i=0; i<this.pieces.length; ++i){
-          this.ref.add(this.pieces[i].object);
+          this.board.object.add(this.pieces[i].object);
         }
       }
     }
@@ -192,9 +184,9 @@
       texture = createTexture();
       scene1.add(texture);
 
-      game.addToScene(scene2);
+      scene2.add(game.ref);
 
-      console.log(scene2);
+      //console.log(scene2);
     };
 
     function createTexture(){
@@ -239,9 +231,12 @@
         // updateBasis(basisObject, pose.bestRotation, pose.bestTranslation);
         // updateBasis(game.board.object, pose.bestRotation, pose.bestTranslation);
         // updateBasis(game.king.object, pose.bestRotation, pose.bestTranslation);
-        updateTransformBis(game.board);
-        updateTransformBis(game.king);
-        console.log(scene2);
+        updateBoard(game.board);
+        var i;
+        for(i=0; i<game.pieces.length; ++i){
+          updatePiece(game.pieces[i]);
+        }
+        //console.log(scene2);
       }
 
       texture.children[0].material.map.needsUpdate = true;
@@ -261,15 +256,16 @@
       basis.position.z = -translation[2];
     };
 
-    function updateTransformBis(piece){
-      console.log(piece);
-      piece.object.scale.x = 1;
-      piece.object.scale.y = 1;
-      piece.object.scale.z = 1;
+    function updatePiece(piece){
+      piece.object.position.x = (piece.xBoard-.5)*unitLength;
+      piece.object.position.y = (piece.yBoard-.5)*unitLength;
+      piece.object.position.z = piece.zBoard*unitLength;
+    }
 
-      piece.object.position.x = scale*piece.xBoard;
-      piece.object.position.y = scale*piece.yBoard;
-      piece.object.position.z = scale*piece.zBoard;
+    function updateBoard(piece){
+      piece.object.position.x = -piece.xBoard*unitLength;
+      piece.object.position.y = -piece.yBoard*unitLength;
+      piece.object.position.z = piece.zBoard*unitLength;
     }
 
     function updateTransform(piece, rotation, translation){
