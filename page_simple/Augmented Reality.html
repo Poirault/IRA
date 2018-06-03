@@ -70,6 +70,21 @@
           this.board.object.add(this.anchors[i].object);
         }
       }
+
+      function getPiece(x,y){
+        for(var i=0; i<this.pieces.length; ++i){
+          if(this.pieces[i].xBoard == x && this.pieces[i].yBoard == y){
+            return this.pieces[i];
+          }
+        }
+      }
+      function getAnchor(x,y){
+        for(var i=0; i<this.anchors.length; ++i){
+          if(this.anchors[i].xBoard == x && this.anchors[i].yBoard == y){
+            return this.pieces[i];
+          }
+        }
+      }
     }
 
     game = new Game();
@@ -219,6 +234,8 @@
       // marker 500 : selecion de la case d'arrivée
       //marker 160 : validation
       var corners17, corners160, corners321, corners500;
+      var markersCorners = [corners17, corners160, corners321, corners500];
+      var selectedAnchor
 
       // Detection des marqueurs
       if (markers.length > 0){
@@ -238,7 +255,6 @@
         }
       }
 
-      var markersCorners = [corners17, corners160, corners321, corners500];
       for(i=0; i<markersCorners.length; ++i){
         if(markersCorners[i]){
           for (j = 0; j < markersCorners[i].length; ++j){
@@ -265,9 +281,11 @@
 
       // Selection du point de départ
       if(corners321){
-        pose = posit.pose(corners321);
-        closestAnchor = findClosestAnchor(game, pose.bestTranslation);
-        changeTexture(closestAnchor.object, "textures/green.png");
+        // Malheureusement le code suivant de detection de proximité aux cases ne fonctionne pas, on s'est donc rabbatu sur la selection au clavier
+        // pose = posit.pose(corners321);
+        // closestAnchor = findClosestAnchor(game, pose.bestTranslation);
+        // changeTexture(closestAnchor.object, "textures/green.png");
+
       }
 
     texture.children[0].material.map.needsUpdate = true;
@@ -312,7 +330,6 @@
           minAnchor = game.anchors[i];
         }
       }
-      console.log(minAnchor.object.name + " | " + selectionPos.toArray());
       return minAnchor;
     }
 
