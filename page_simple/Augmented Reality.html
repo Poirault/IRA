@@ -1,0 +1,309 @@
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>Augmented Reality</title>
+
+  <script type="text/javascript" src="Augmented%20Reality-Dateien/Three.js"></script>
+
+  <script type="text/javascript" src="Augmented%20Reality-Dateien/svd.js"></script>
+  <script type="text/javascript" src="Augmented%20Reality-Dateien/posit1.js"></script>
+  <script type="text/javascript" src="Augmented%20Reality-Dateien/cv.js"></script>
+  <script type="text/javascript" src="Augmented%20Reality-Dateien/aruco.js"></script>
+
+  <script>
+    var video, canvas, context, imageData, detector, posit;
+    var renderer;
+    var scene1, scene2;
+    var camera1, camera2;
+    var texture;
+    var scale = .35; //millimeters
+    var boardOffset = 3;
+    var boardWidth = 5;
+    var boardHeight = .1;
+    var unitLength = boardWidth/8;
+    var game;
+
+    function makeBox(name, w,h,d, texturePath){
+      var object = new THREE.Object3D(),
+        geometry = new THREE.BoxGeometry(w,h,d),
+        texture = THREE.ImageUtils.loadTexture(texturePath),
+        material = new THREE.MeshBasicMaterial( {map: texture} ),
+        mesh = new THREE.Mesh(geometry, material);
+
+      object.add(mesh);
+      object.name = name;
+
+      return object;
+    }
+
+    class ChessPiece{
+      constructor(name, dim, pos, texturePath){
+        this.xBoard = pos[0];
+        this.yBoard = pos[1];
+        this.zBoard = pos[2];
+        this.object = makeBox(name, dim[0], dim[1], dim[2], texturePath);
+      }
+    }
+
+    class Game{
+      constructor(){
+        this.ref = new THREE.Object3D();
+        this.board = new ChessPiece("board", [boardWidth, boardWidth, boardHeight], [0, 5, 0], "textures/board.jpg");
+        // this.board = new ChessPiece([5,5,.2],4,4,"textures/chess.jpg");
+        this.king = new ChessPiece("king", [.2, .2, .2], [1, 1, boardHeight], "textures/white.png");
+        this.queen = new ChessPiece("king", [.1, .1, .4], [4, 4, boardHeight], "textures/white.png");
+        // console.log(this.board.position);
+        // console.log(this.king.object.position);
+        this.ref.add(this.board.object);
+        this.pieces = [this.king, this.queen];
+        var i;
+        for(i=0; i<this.pieces.length; ++i){
+          this.board.object.add(this.pieces[i].object);
+        }
+      }
+    }
+
+    game = new Game();
+
+    function onLoad(){
+      video = document.getElementById("video");
+      canvas = document.getElementById("canvas");
+      context = canvas.getContext("2d");
+
+      canvas.width = parseInt(canvas.style.width);
+      canvas.height = parseInt(canvas.style.height);
+
+      if (navigator.mediaDevices === undefined) {
+        navigator.mediaDevices = {};
+      }
+
+      if (navigator.mediaDevices.getUserMedia === undefined) {
+        navigator.mediaDevices.getUserMedia = function(constraints) {
+          var getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+
+          if (!getUserMedia) {
+            return Promise.reject(new Error('getUserMedia is not implemented in this browser'));
+          }
+
+          return new Promise(function(resolve, reject) {
+            getUserMedia.call(navigator, constraints, resolve, reject);
+          });
+        }
+      }
+
+      navigator.mediaDevices
+        .getUserMedia({ video: true })
+        .then(function(stream) {
+          if ("srcObject" in video) {
+            video.srcObject = stream;
+          } else {
+            video.src = window.URL.createObjectURL(stream);
+          }
+        })
+        .catch(function(err) {
+          console.log(err.name + ": " + err.message);
+        }
+      );
+
+      detector = new AR.Detector();
+      posit = new POS.Posit(scale, canvas.width);
+
+      createRenderers();
+      createScenes();
+
+      requestAnimationFrame(tick);
+    };
+
+    function tick(){
+      requestAnimationFrame(tick);
+
+      if (video.readyState === video.HAVE_ENOUGH_DATA){
+        snapshot();
+
+        var markers = detector.detect(imageData);
+        drawCorners(markers);
+        updateScenes(markers);
+
+        render();
+      }
+    };
+
+    function snapshot(){
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+    };
+
+    function drawCorners(markers){
+      var corners, corner, i, j;
+
+      context.lineWidth = 3;
+
+      for (i = 0; i < markers.length; ++ i){
+        corners = markers[i].corners;
+
+        context.strokeStyle = "red";
+        context.beginPath();
+
+        for (j = 0; j < corners.length; ++ j){
+          corner = corners[j];
+          context.moveTo(corner.x, corner.y);
+          corner = corners[(j + 1) % corners.length];
+          context.lineTo(corner.x, corner.y);
+        }
+
+        context.stroke();
+        context.closePath();
+
+        context.strokeStyle = "green";
+        context.strokeRect(corners[0].x - 2, corners[0].y - 2, 4, 4);
+      }
+    };
+
+    function createRenderers(){
+      renderer = new THREE.WebGLRenderer();
+      renderer.setClearColor(0xffffff, 1);
+      renderer.setSize(canvas.width, canvas.height);
+      document.getElementById("container").appendChild(renderer.domElement);
+
+      scene1 = new THREE.Scene();
+      camera1 = new THREE.OrthographicCamera(-0.5, 0.5, 0.5, -0.5);
+      scene1.add(camera1);
+
+      scene2 = new THREE.Scene();
+      camera2 = new THREE.PerspectiveCamera(40, canvas.width / canvas.height, 1, 1000);
+      scene2.add(camera2);
+    };
+
+    function render(){
+      renderer.autoClear = false;
+      renderer.clear();
+      renderer.render(scene1, camera1);
+      renderer.render(scene2, camera2);
+    };
+
+    function createScenes(){
+      texture = createTexture();
+      scene1.add(texture);
+
+      scene2.add(game.ref);
+
+      //console.log(scene2);
+    };
+
+    function createTexture(){
+      var texture = new THREE.Texture(video),
+          object = new THREE.Object3D(),
+          geometry = new THREE.PlaneGeometry(1.0, 1.0, 0.0),
+          material = new THREE.MeshBasicMaterial( {map: texture, depthTest: false, depthWrite: false} ),
+          mesh = new THREE.Mesh(geometry, material);
+
+      object.position.z = -1;
+
+      object.add(mesh);
+
+      return object;
+    };
+
+    function updateScenes(markers){
+      var corners, corner, pose, i;
+      var marker, found;
+
+      found = false;
+      if (markers.length > 0){
+        for(i = 0; i < markers.length; ++ i){
+          if (markers[i].id == 17){
+            found = true;
+            corners = markers[i].corners;
+          }
+        }
+      }
+
+      if(found){
+        for (i = 0; i < corners.length; ++ i){
+          corner = corners[i];
+          corner.x = corner.x - (canvas.width / 2);
+          corner.y = (canvas.height / 2) - corner.y;
+        }
+
+        pose = posit.pose(corners);
+
+        updateBasis(game.ref, pose.bestRotation, pose.bestTranslation);
+        // var basis = ref.matrix.makeBasis;
+        // updateBasis(basisObject, pose.bestRotation, pose.bestTranslation);
+        // updateBasis(game.board.object, pose.bestRotation, pose.bestTranslation);
+        // updateBasis(game.king.object, pose.bestRotation, pose.bestTranslation);
+        updateBoard(game.board);
+        var i;
+        for(i=0; i<game.pieces.length; ++i){
+          updatePiece(game.pieces[i]);
+        }
+        //console.log(scene2);
+      }
+
+      texture.children[0].material.map.needsUpdate = true;
+    };
+
+    function updateBasis(basis, rotation, translation){
+      basis.scale.x = scale;
+      basis.scale.y = scale;
+      basis.scale.z = scale;
+
+      basis.rotation.x = -Math.asin(-rotation[1][2]);
+      basis.rotation.y = -Math.atan2(rotation[0][2], rotation[2][2]);
+      basis.rotation.z = Math.atan2(rotation[1][0], rotation[1][1]);
+
+      basis.position.x = translation[0];
+      basis.position.y = translation[1];
+      basis.position.z = -translation[2];
+    };
+
+    function updatePiece(piece){
+      piece.object.position.x = (piece.xBoard-.5)*unitLength;
+      piece.object.position.y = (piece.yBoard-.5)*unitLength;
+      piece.object.position.z = piece.zBoard*unitLength;
+    }
+
+    function updateBoard(piece){
+      piece.object.position.x = -piece.xBoard*unitLength;
+      piece.object.position.y = -piece.yBoard*unitLength;
+      piece.object.position.z = piece.zBoard*unitLength;
+    }
+
+    function updateTransform(piece, rotation, translation){
+      var actualTranslation = JSON.parse(JSON.stringify(translation));
+      console.log("translation " + translation);
+      console.log(piece.object);
+      piece.object.scale.x = scale;
+      piece.object.scale.y = scale;
+      piece.object.scale.z = scale;
+
+      piece.object.rotation.x = -Math.asin(-rotation[1][2]);
+      piece.object.rotation.y = -Math.atan2(rotation[0][2], rotation[2][2]);
+      piece.object.rotation.z = Math.atan2(rotation[1][0], rotation[1][1]);
+
+      piece.object.position.x = actualTranslation[0];
+      piece.object.position.y = actualTranslation[1];
+      piece.object.position.z = -actualTranslation[2];
+      // piece.object.position.x = translation[0];
+      // piece.object.position.y = translation[1];
+      // piece.object.position.z = -translation[2];
+    };
+
+    window.onload = onLoad;
+  </script>
+
+</head>
+
+<body style="text-align: center; font-family: monospace;" class="touchpadSwipeAnimationCore">
+
+  <video id="video" autoplay="true" style="display:none;" width="320" height="240"></video>
+
+  <div style="width: 100%;">
+    <div style="width: 650px; margin-left:auto; margin-right:auto;">
+      <canvas id="canvas" style="width: 320px; height: 240px; float: left; border: solid 1px black;" width="320" height="240"></canvas>
+      <div id="container" style="width: 320px; height: 240px; float: left; border: solid 1px black; background: green;"></div>
+    </div>
+  <div style="clear: both;"></div>
+
+
+
+</body></html>
