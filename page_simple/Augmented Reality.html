@@ -299,18 +299,18 @@
         }
       }
 
-      // Selection du point de départ
-      if(corners321){
-        // Malheureusement le code suivant de detection de proximité aux cases ne fonctionne pas, on s'est donc rabbatu sur la selection au clavier
-        // pose = posit.pose(corners321);
-        // closestAnchor = findClosestAnchor(game, pose.bestTranslation);
-        // changeTexture(closestAnchor.object, "textures/green.png");
-        startAnchor = game.getAnchor(game.startPos[0],game.startPos[1]);
-        document.onkeydown = function(e) {
+
+      document.onkeydown = function(e) {
+        // Selection du point de départ
+        if(corners321){
+          // Malheureusement le code suivant de detection de proximité aux cases ne fonctionne pas, on s'est donc rabbatu sur la selection au clavier
+          // pose = posit.pose(corners321);
+          // closestAnchor = findClosestAnchor(game, pose.bestTranslation);
+          // changeTexture(closestAnchor.object, "textures/green.png");
+          startAnchor = game.getAnchor(game.startPos[0],game.startPos[1]);
           if([37,38,39,40].includes(e.keyCode)){
             // reset the color to black if we change the selection
             resetTexture(startAnchor, "startPos");
-            console.log(startAnchor.xBoard + ", " + startAnchor.yBoard);
 
             switch (e.keyCode) {
                 case 37: //left
@@ -327,10 +327,39 @@
                     break;
             }
             startAnchor = game.getAnchor(game.startPos[0],game.startPos[1]);
-            console.log(startAnchor.xBoard + ", " + startAnchor.yBoard);
-            changeTexture(startAnchor.object, "textures/end.png");
+            changeTexture(startAnchor.object, "textures/start.png");
           }
         }
+        // Selection du point d'arrivée
+        if(corners500 && !corners321){
+          endAnchor = game.getAnchor(game.endPos[0],game.endPos[1]);
+          if([37,38,39,40].includes(e.keyCode)){
+            // reset the color to black if we change the selection
+            resetTexture(endAnchor, "endPos");
+
+            switch (e.keyCode) {
+                case 37: //left
+                    game.moveSelection(game.endPos,"left");
+                    break;
+                case 38: //up
+                    game.moveSelection(game.endPos,"up");
+                    break;
+                case 39: //right
+                    game.moveSelection(game.endPos,"right");
+                    break;
+                case 40: //down
+                    game.moveSelection(game.endPos,"down");
+                    break;
+            }
+            endAnchor = game.getAnchor(game.endPos[0],game.endPos[1]);
+            changeTexture(endAnchor.object, "textures/end.png");
+          }
+        }
+      }
+
+      // Validation du movement
+      if(corners160){
+
       }
 
       texture.children[0].material.map.needsUpdate = true;
@@ -379,26 +408,21 @@
     }
 
     function changeTexture(object, src){
-      console.log("changingTexture");
-      console.log(object);
-      console.log(src);
       object.children[0].material.map = THREE.ImageUtils.loadTexture(src);
       object.children[0].material.needsUpdate = true;
     }
 
     function resetTexture(anchor, posFrom){
-      console.log("resetting");
-      changeTexture(anchor.object, "textures/end.png");
-      // if(posFrom != "startPos" && anchor.xBoard == game.startPos[0] && anchor.yBoard == game.startPos[1]){
-      //   changeTexture(anchor.object, "textures/start.png");
-      // }
-      // else if(posFrom != "endPos" && anchor.xBoard == game.endPos[0] && anchor.yBoard == game.endPos[1]){
-      //   changeTexture(anchor.object, "textures/end.png");
-      // }
-      // else{
-      //   console.log("test");
-      //   changeTexture(anchor.object, "textures/anchor.png");
-      // }
+      // changeTexture(anchor.object, "textures/anchor.png");
+      if(posFrom != "startPos" && anchor.xBoard == game.startPos[0] && anchor.yBoard == game.startPos[1]){
+        changeTexture(anchor.object, "textures/start.png");
+      }
+      else if(posFrom != "endPos" && anchor.xBoard == game.endPos[0] && anchor.yBoard == game.endPos[1]){
+        changeTexture(anchor.object, "textures/end.png");
+      }
+      else{
+        changeTexture(anchor.object, "textures/anchor.png");
+      }
     }
 
     window.onload = onLoad;
