@@ -73,6 +73,21 @@
           this.board.object.add(this.anchors[i].object);
         }
       }
+
+      getPiece(x,y){
+        for(var i=0; i<this.pieces.length; ++i){
+          if(this.pieces[i].xBoard == x && this.pieces[i].yBoard == y){
+            return this.pieces[i];
+          }
+        }
+      }
+      getAnchor(x,y){
+        for(var i=0; i<this.anchors.length; ++i){
+          if(this.anchors[i].xBoard == x && this.anchors[i].yBoard == y){
+            return this.pieces[i];
+          }
+        }
+      }
     }
 
     game = new Game();
@@ -215,13 +230,8 @@
     };
 
     function updateScenes(markers){
-      var corner, pose, i;
-      var closestAnchor;
-      // marker17 : placement du plateau
-      // marker321 : selection de la case de départ
-      // marker 500 : selecion de la case d'arrivée
-      //marker 160 : validation
-      var corners17, corners160, corners321, corners500;
+      var corners, corner, pose, i;
+      var marker, found;
 
       // Detection des marqueurs
       if (markers.length > 0){
@@ -314,22 +324,13 @@
       piece.object.position.z = piece.zBoard*unitLength;
     }
 
-    function findClosestAnchor(game, translation){
-      var minDistance, distance, anchorPos, minAnchor;
-      selectionPos = new THREE.Vector3(translation[0], translation[1], translation[2]);
-      anchorPos = new THREE.Vector3();
-      for(var i=0; i<game.anchors.length; ++i){
-        anchorPos.setFromMatrixPosition( game.anchors[i].object.matrixWorld );
-        distance =  anchorPos.distanceTo(selectionPos);
-        // console.log(selectionPos.toArray() + " || " + anchorPos.toArray() + " || " + distance);
-        if(!minDistance || distance < minDistance){
-          minDistance = distance;
-          minAnchor = game.anchors[i];
-        }
-      }
-      console.log(minAnchor.object.name + " | " + selectionPos.toArray());
-      return minAnchor;
-    }
+    function updateTransform(piece, rotation, translation){
+      var actualTranslation = JSON.parse(JSON.stringify(translation));
+      console.log("translation " + translation);
+      console.log(piece.object);
+      piece.object.scale.x = scale;
+      piece.object.scale.y = scale;
+      piece.object.scale.z = scale;
 
     function changeTexture(object, src){
       object.children[0].material.map = THREE.ImageUtils.loadTexture(src);
