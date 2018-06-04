@@ -8,6 +8,7 @@
   <script type="text/javascript" src="Augmented%20Reality-Dateien/posit1.js"></script>
   <script type="text/javascript" src="Augmented%20Reality-Dateien/cv.js"></script>
   <script type="text/javascript" src="Augmented%20Reality-Dateien/aruco.js"></script>
+    <script type="text/javascript" src="Augmented%20Reality-Dateien/chess.js"></script>
 
   <script>
     var video, canvas, context, imageData, detector, posit;
@@ -23,6 +24,8 @@
     var boardHeight = .1;
     var unitLength = boardWidth/8;
     var game;
+    var chess = new Chess();
+    chess.initiate();
 
     function makeBox(name, w,h,d, texturePath=null){
       var object = new THREE.Object3D(),
@@ -50,7 +53,7 @@
       constructor(){
         this.ref = new THREE.Object3D(); // positionné au niveau du marqueur de plateau pour faire reference
         this.board = new ChessPiece("board", [boardWidth, boardWidth, boardHeight], [0, 5, 0], "textures/board.jpg");
-        this.king = new ChessPiece("king", [.2, .2, .2], [1, 1, boardHeight], "textures/white.png");
+        this.king = new ChessPiece("king", [.2, .2, .2], [5, 2, boardHeight], "textures/white.png");
         this.queen = new ChessPiece("king", [.1, .1, .4], [4, 4, boardHeight], "textures/white.png");
 
         this.anchors = [];
@@ -265,7 +268,19 @@
 
       // Selection du point de départ
       if(corners321){
+        var mov = chess.move(8 * (game.pieces[0].yBoard - 1) + game.pieces[0].xBoard - 1,8 * (game.pieces[0].yBoard - 1) + (game.pieces[0].xBoard - 1) + 8);
+        if(mov[0] != -1){
+                game.pieces[0].xBoard = mov[0]+1;
+                game.pieces[0].yBoard = mov[1]+1;
+              }
         pose = posit.pose(corners321);
+        updatePiece(game.pieces[0])
+        console.log(8 * (game.pieces[0].yBoard - 1) + game.pieces[0].xBoard - 1);
+        for(var i = 0; i<64;i++){
+          console.log(chess.board[i]);
+        }
+        console.log(mov[0] + "/" + mov[1]);
+        console.log(game.pieces[0].yBoard + " / " + game.pieces[0].xBoard + "\n")
         closestAnchor = findClosestAnchor(game, pose.bestTranslation);
         changeTexture(closestAnchor.object, "textures/green.png");
       }
