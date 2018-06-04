@@ -19,10 +19,12 @@
     var camera1, camera2;
     var texture;
     var scale = .35; //millimeters
-    var boardWidth = 10;
+    var boardWidth = 7;
     var boardHeight = .1;
     var unitLength = boardWidth/8;
     var game;
+    var whiteTexture = "textures/wood.jpg";
+    var blackTexture = "textures/darkwood.jpeg";
 
     function makeBox(name, w,h,d, texturePath=null){
       var object = new THREE.Object3D(),
@@ -49,57 +51,62 @@
     class Game{
       constructor(){
         this.ref = new THREE.Object3D();
-        this.board = new ChessPiece("board", [boardWidth, boardWidth, boardHeight], [0, 8, 0], "textures/board.jpg");
-        // this.board = new ChessPiece([5,5,.2],4,4,"textures/chess.jpg");
-        this.Wrock1   = new ChessPiece("Wrock1",    [.2, .2, .2], [4, 4, boardHeight], "textures/white.png");
-        this.Wknight1 = new ChessPiece("Wknight1",  [.3, .3, .3], [4, 3, boardHeight], "textures/white.png");
-        this.Wbishop1 = new ChessPiece("Wbishop1",  [.4, .4, .4], [4, 2, boardHeight], "textures/white.png");
-        this.Wking    = new ChessPiece("Wking",     [.6, .6, .6], [4, 1, boardHeight], "textures/white.png");
-        this.Wqueen   = new ChessPiece("Wqueen",    [.5, .5, .5], [4, 0, boardHeight], "textures/white.png");
-        this.Wbishop2 = new ChessPiece("Wbishop2",  [.4, .4, .4], [4, -1, boardHeight], "textures/white.png");
-        this.Wknight2 = new ChessPiece("Wknight2",  [.3, .3, .3], [4, -2, boardHeight], "textures/white.png");
-        this.Wrock2   = new ChessPiece("Wrock2",    [.2, .2, .2], [4, -3, boardHeight], "textures/white.png");
-        this.Wpawn1   = new ChessPiece("Wpawn1",    [.1, .1, .1], [3, 4, boardHeight], "textures/white.png");
-        this.Wpawn2   = new ChessPiece("Wpawn2",    [.1, .1, .1], [3, 3, boardHeight], "textures/white.png");
-        this.Wpawn3   = new ChessPiece("Wpawn3",    [.1, .1, .1], [3, 2, boardHeight], "textures/white.png");
-        this.Wpawn4   = new ChessPiece("Wpawn4",    [.1, .1, .1], [3, 1, boardHeight], "textures/white.png");
-        this.Wpawn5   = new ChessPiece("Wpawn5",    [.1, .1, .1], [3, 0, boardHeight], "textures/white.png");
-        this.Wpawn6   = new ChessPiece("Wpawn6",    [.1, .1, .1], [3, -1, boardHeight], "textures/white.png");
-        this.Wpawn7   = new ChessPiece("Wpawn7",    [.1, .1, .1], [3, -2, boardHeight], "textures/white.png");
-        this.Wpawn8   = new ChessPiece("Wpawn8",    [.1, .1, .1], [3, -3, boardHeight], "textures/white.png");
+        this.board = new ChessPiece("board", [boardWidth, boardWidth, boardHeight], [0, 5, 0], "textures/board.jpg");
 
-        this.Brock1   = new ChessPiece("Brock1",    [.2, .2, .2], [-3, 4, boardHeight], "textures/black.png");
-        this.Bknight1 = new ChessPiece("Bknight1",  [.3, .3, .3], [-3, 3, boardHeight], "textures/black.png");
-        this.Bbishop1 = new ChessPiece("Bbishop1",  [.4, .4, .4], [-3, 2, boardHeight], "textures/black.png");
-        this.Bking    = new ChessPiece("Bking",     [.6, .6, .6], [-3, 1, boardHeight], "textures/black.png");
-        this.Bqueen   = new ChessPiece("Bqueen",    [.5, .5, .5], [-3, 0, boardHeight], "textures/black.png");
-        this.Bbishop2 = new ChessPiece("Bbishop2",  [.4, .4, .4], [-3, -1, boardHeight], "textures/black.png");
-        this.Bknight2 = new ChessPiece("Bknight2",  [.3, .3, .3], [-3, -2, boardHeight], "textures/black.png");
-        this.Brock2   = new ChessPiece("Brock2",    [.2, .2, .2], [-3, -3, boardHeight], "textures/black.png");
-        this.Bpawn1   = new ChessPiece("Bpawn1",    [.1, .1, .1], [-2, 4, boardHeight], "textures/black.png");
-        this.Bpawn2   = new ChessPiece("Bpawn2",    [.1, .1, .1], [-2, 3, boardHeight], "textures/black.png");
-        this.Bpawn3   = new ChessPiece("Bpawn3",    [.1, .1, .1], [-2, 2, boardHeight], "textures/black.png");
-        this.Bpawn4   = new ChessPiece("Bpawn4",    [.1, .1, .1], [-2, 1, boardHeight], "textures/black.png");
-        this.Bpawn5   = new ChessPiece("Bpawn5",    [.1, .1, .1], [-2, 0, boardHeight], "textures/black.png");
-        this.Bpawn6   = new ChessPiece("Bpawn6",    [.1, .1, .1], [-2, -1, boardHeight], "textures/black.png");
-        this.Bpawn7   = new ChessPiece("Bpawn7",    [.1, .1, .1], [-2, -2, boardHeight], "textures/black.png");
-        this.Bpawn8   = new ChessPiece("Bpawn8",    [.1, .1, .1], [-2, -3, boardHeight], "textures/black.png");
-        // console.log(this.board.position);
-        // console.log(this.king.object.position);
+        this.Wrock1   = new ChessPiece("Wrock1",    [.2, .2, .4], [8, 8, boardHeight], whiteTexture);
+        this.Wknight1 = new ChessPiece("Wknight1",  [.3, .3, .6], [8, 7, boardHeight], whiteTexture);
+        this.Wbishop1 = new ChessPiece("Wbishop1",  [.4, .4, .8], [8, 6, boardHeight], whiteTexture);
+        this.Wking    = new ChessPiece("Wking",     [.6, .6, 1.2], [8, 5, boardHeight], whiteTexture);
+        this.Wqueen   = new ChessPiece("Wqueen",    [.5, .5, 1.0], [8, 4, boardHeight], whiteTexture);
+        this.Wbishop2 = new ChessPiece("Wbishop2",  [.4, .4, .8], [8, 3, boardHeight], whiteTexture);
+        this.Wknight2 = new ChessPiece("Wknight2",  [.3, .3, .6], [8, 2, boardHeight], whiteTexture);
+        this.Wrock2   = new ChessPiece("Wrock2",    [.2, .2, .4], [8, 1, boardHeight], whiteTexture);
+        this.Wpawn1   = new ChessPiece("Wpawn1",    [.1, .1, .4], [7, 8, boardHeight], whiteTexture);
+        this.Wpawn2   = new ChessPiece("Wpawn2",    [.1, .1, .4], [7, 7, boardHeight], whiteTexture);
+        this.Wpawn3   = new ChessPiece("Wpawn3",    [.1, .1, .4], [7, 6, boardHeight], whiteTexture);
+        this.Wpawn4   = new ChessPiece("Wpawn4",    [.1, .1, .4], [7, 5, boardHeight], whiteTexture);
+        this.Wpawn5   = new ChessPiece("Wpawn5",    [.1, .1, .4], [7, 4, boardHeight], whiteTexture);
+        this.Wpawn6   = new ChessPiece("Wpawn6",    [.1, .1, .4], [7, 3, boardHeight], whiteTexture);
+        this.Wpawn7   = new ChessPiece("Wpawn7",    [.1, .1, .4], [7, 2, boardHeight], whiteTexture);
+        this.Wpawn8   = new ChessPiece("Wpawn8",    [.1, .1, .4], [7, 1, boardHeight], whiteTexture);
+
+        this.Brock1   = new ChessPiece("Brock1",    [.2, .2, .4], [1, 8, boardHeight], blackTexture);
+        this.Bknight1 = new ChessPiece("Bknight1",  [.3, .3, .6], [1, 7, boardHeight], blackTexture);
+        this.Bbishop1 = new ChessPiece("Bbishop1",  [.4, .4, .8], [1, 6, boardHeight], blackTexture);
+        this.Bking    = new ChessPiece("Bking",     [.6, .6, 1.2], [1, 5, boardHeight], blackTexture);
+        this.Bqueen   = new ChessPiece("Bqueen",    [.5, .5, 1.0], [1, 4, boardHeight], blackTexture);
+        this.Bbishop2 = new ChessPiece("Bbishop2",  [.4, .4, .8], [1, 3, boardHeight], blackTexture);
+        this.Bknight2 = new ChessPiece("Bknight2",  [.3, .3, .6], [1, 2, boardHeight], blackTexture);
+        this.Brock2   = new ChessPiece("Brock2",    [.2, .2, .4], [1, 1, boardHeight], blackTexture);
+        this.Bpawn1   = new ChessPiece("Bpawn1",    [.1, .1, .4], [2, 8, boardHeight], blackTexture);
+        this.Bpawn2   = new ChessPiece("Bpawn2",    [.1, .1, .4], [2, 7, boardHeight], blackTexture);
+        this.Bpawn3   = new ChessPiece("Bpawn3",    [.1, .1, .4], [2, 6, boardHeight], blackTexture);
+        this.Bpawn4   = new ChessPiece("Bpawn4",    [.1, .1, .4], [2, 5, boardHeight], blackTexture);
+        this.Bpawn5   = new ChessPiece("Bpawn5",    [.1, .1, .4], [2, 4, boardHeight], blackTexture);
+        this.Bpawn6   = new ChessPiece("Bpawn6",    [.1, .1, .4], [2, 3, boardHeight], blackTexture);
+        this.Bpawn7   = new ChessPiece("Bpawn7",    [.1, .1, .4], [2, 2, boardHeight], blackTexture);
+        this.Bpawn8   = new ChessPiece("Bpawn8",    [.1, .1, .4], [2, 1, boardHeight], blackTexture);
+
+        this.pieces = [this.Wking, this.Wqueen, this.Wbishop1, this.Wbishop2, this.Wknight1, this.Wknight2,
+          this.Wrock1, this.Wrock2, this.Wpawn1, this.Wpawn2, this.Wpawn3, this.Wpawn4, this.Wpawn5, this.Wpawn6,
+          this.Wpawn7, this.Wpawn8, this.Bking, this.Bqueen, this.Bbishop1, this.Bbishop2, this.Bknight1,
+          this.Bknight2, this.Brock1, this.Brock2, this.Bpawn1, this.Bpawn2, this.Bpawn3, this.Bpawn4, this.Bpawn5,
+          this.Bpawn6, this.Bpawn7, this.Bpawn8];
+
         this.anchors = [];
         for(var i=1; i<=8; i++){
           for(var j=1; j<=8; j++){
-            this.anchors.push(new ChessPiece("anchor"+(i+(j-1)*8), [.5,.5,.1], [i,j,boardHeight],"textures/anchor.png"));
+            this.anchors.push(new ChessPiece("anchor"+(i+(j-1)*8), [.2,.2,.05], [i,j,boardHeight],"textures/white.png"));
           }
         }
+
         this.startPos = [4,4];
         this.endPos = [4,4];
+
         // definition de l'arborescence
         this.ref.add(this.board.object);
-        this.pieces = [this.Wking, this.Wqueen, this.Wbishop1, this.Wbishop2, this.Wknight1, this.Wknight2, this.Wrock1, this.Wrock2,
-                      this.Wpawn1, this.Wpawn2, this.Wpawn3, this.Wpawn4, this.Wpawn5, this.Wpawn6, this.Wpawn7, this.Wpawn8,
-                      this.Bking, this.Bqueen, this.Bbishop1, this.Bbishop2, this.Bknight1, this.Bknight2, this.Brock1, this.Brock2,
-                      this.Bpawn1, this.Bpawn2, this.Bpawn3, this.Bpawn4, this.Bpawn5, this.Bpawn6, this.Bpawn7, this.Bpawn8];
+        this.board.object.add(this.light);
+
         for(var i=0; i<this.pieces.length; ++i){
           this.board.object.add(this.pieces[i].object);
         }
@@ -456,7 +463,7 @@
         changeTexture(anchor.object, "textures/end.png");
       }
       else{
-        changeTexture(anchor.object, "textures/anchor.png");
+        changeTexture(anchor.object, "textures/white.png");
       }
     }
 
