@@ -25,6 +25,7 @@
     var game;
     var whiteTexture = "textures/wood.jpg";
     var blackTexture = "textures/darkwood.jpeg";
+    var pieceHasMoved = false;
 
     function makeBox(name, w,h,d, texturePath=null){
       var object = new THREE.Object3D(),
@@ -105,7 +106,6 @@
 
         // definition de l'arborescence
         this.ref.add(this.board.object);
-        this.board.object.add(this.light);
 
         for(var i=0; i<this.pieces.length; ++i){
           this.board.object.add(this.pieces[i].object);
@@ -145,6 +145,13 @@
             selection[1] -= selection[1] != 1 ? 1 : 0;
             break;
         }
+      }
+
+      movePiece(start, end){
+        var piece = this.getPiece(start[0],start[1]);
+        piece.xBoard = end[0];
+        piece.yBoard = end[1];
+        updatePiece(this.getPiece(end[0],end[1]));
       }
     }
 
@@ -353,6 +360,7 @@
           if([37,38,39,40].includes(e.keyCode)){
             // reset the color to black if we change the selection
             resetTexture(startAnchor, "startPos");
+            pieceHasMoved = false;
 
             switch (e.keyCode) {
                 case 37: //left
@@ -378,6 +386,7 @@
           if([37,38,39,40].includes(e.keyCode)){
             // reset the color to black if we change the selection
             resetTexture(endAnchor, "endPos");
+            pieceHasMoved = false;
 
             switch (e.keyCode) {
                 case 37: //left
@@ -400,8 +409,9 @@
       }
 
       // Validation du movement
-      if(corners160){
-
+      if(corners160 && !pieceHasMoved){
+        pieceHasMoved = true;
+        game.movePiece(game.startPos,game.endPos);
       }
 
       texture.children[0].material.map.needsUpdate = true;
