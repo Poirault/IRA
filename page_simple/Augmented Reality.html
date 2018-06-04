@@ -56,9 +56,11 @@
         this.anchors = [];
         for(var i=1; i<=8; i++){
           for(var j=1; j<=8; j++){
-            this.anchors.push(new ChessPiece("anchor"+(i+(j-1)*8), [.5,.5,.1], [i,j,boardHeight]));
+            this.anchors.push(new ChessPiece("anchor"+(i+(j-1)*8), [.5,.5,.1], [i,j,boardHeight],"textures/anchor.png"));
           }
         }
+        this.startPos = [4,4];
+        this.endPos = [4,4];
 
         // definition de l'arborescence
         this.ref.add(this.board.object);
@@ -81,8 +83,25 @@
       getAnchor(x,y){
         for(var i=0; i<this.anchors.length; ++i){
           if(this.anchors[i].xBoard == x && this.anchors[i].yBoard == y){
-            return this.pieces[i];
+            return this.anchors[i];
           }
+        }
+      }
+
+      moveSelection(selection, direction){
+        switch(direction){
+          case "left":
+            selection[0] -= selection[0] != 1 ? 1 : 0;
+            break;
+          case "up":
+            selection[1] += selection[1] != 8 ? 1 : 0;
+            break;
+          case "right":
+            selection[0] += selection[0] != 8 ? 1 : 0;
+            break;
+          case "down":
+            selection[1] -= selection[1] != 1 ? 1 : 0;
+            break;
         }
       }
     }
@@ -228,14 +247,14 @@
 
     function updateScenes(markers){
       var corner, pose, i;
-      var closestAnchor;
       // marker17 : placement du plateau
       // marker321 : selection de la case de départ
       // marker 500 : selecion de la case d'arrivée
       //marker 160 : validation
       var corners17, corners160, corners321, corners500;
-      var markersCorners = [corners17, corners160, corners321, corners500];
-      var selectedAnchor
+      // var closestAnchor;
+      var startAnchor;
+      var endAnchor;
 
       // Detection des marqueurs
       if (markers.length > 0){
@@ -255,6 +274,7 @@
         }
       }
 
+      var markersCorners = [corners17, corners160, corners321, corners500];
       for(i=0; i<markersCorners.length; ++i){
         if(markersCorners[i]){
           for (j = 0; j < markersCorners[i].length; ++j){
@@ -285,10 +305,35 @@
         // pose = posit.pose(corners321);
         // closestAnchor = findClosestAnchor(game, pose.bestTranslation);
         // changeTexture(closestAnchor.object, "textures/green.png");
+        startAnchor = game.getAnchor(game.startPos[0],game.startPos[1]);
+        document.onkeydown = function(e) {
+          if([37,38,39,40].includes(e.keyCode)){
+            // reset the color to black if we change the selection
+            resetTexture(startAnchor, "startPos");
+            console.log(startAnchor.xBoard + ", " + startAnchor.yBoard);
 
+            switch (e.keyCode) {
+                case 37: //left
+                    game.moveSelection(game.startPos,"left");
+                    break;
+                case 38: //up
+                    game.moveSelection(game.startPos,"up");
+                    break;
+                case 39: //right
+                    game.moveSelection(game.startPos,"right");
+                    break;
+                case 40: //down
+                    game.moveSelection(game.startPos,"down");
+                    break;
+            }
+            startAnchor = game.getAnchor(game.startPos[0],game.startPos[1]);
+            console.log(startAnchor.xBoard + ", " + startAnchor.yBoard);
+            changeTexture(startAnchor.object, "textures/end.png");
+          }
+        }
       }
 
-    texture.children[0].material.map.needsUpdate = true;
+      texture.children[0].material.map.needsUpdate = true;
     };
 
     function updateBasis(basis, rotation, translation){
@@ -334,8 +379,26 @@
     }
 
     function changeTexture(object, src){
+      console.log("changingTexture");
+      console.log(object);
+      console.log(src);
       object.children[0].material.map = THREE.ImageUtils.loadTexture(src);
       object.children[0].material.needsUpdate = true;
+    }
+
+    function resetTexture(anchor, posFrom){
+      console.log("resetting");
+      changeTexture(anchor.object, "textures/end.png");
+      // if(posFrom != "startPos" && anchor.xBoard == game.startPos[0] && anchor.yBoard == game.startPos[1]){
+      //   changeTexture(anchor.object, "textures/start.png");
+      // }
+      // else if(posFrom != "endPos" && anchor.xBoard == game.endPos[0] && anchor.yBoard == game.endPos[1]){
+      //   changeTexture(anchor.object, "textures/end.png");
+      // }
+      // else{
+      //   console.log("test");
+      //   changeTexture(anchor.object, "textures/anchor.png");
+      // }
     }
 
     window.onload = onLoad;
