@@ -12,17 +12,21 @@
   <script>
     var video, canvas, context, imageData, detector, posit;
     var renderer;
+    // scene1 = scene de debug, a gauche sur la page web
+    // scene1 = scene de jeu, a droite sur la page web
+    // pareil pour camera 1 et 2
     var scene1, scene2;
     var camera1, camera2;
     var texture;
     var scale = .35; //millimeters
-    var boardOffset = 3;
-    var boardWidth = 5;
+    var boardWidth = 7;
     var boardHeight = .1;
     var unitLength = boardWidth/8;
     var game;
+    var whiteTexture = "textures/wood.jpg";
+    var blackTexture = "textures/darkwood.jpeg";
 
-    function makeBox(name, w,h,d, texturePath){
+    function makeBox(name, w,h,d, texturePath=null){
       var object = new THREE.Object3D(),
         geometry = new THREE.BoxGeometry(w,h,d),
         texture = THREE.ImageUtils.loadTexture(texturePath),
@@ -36,7 +40,7 @@
     }
 
     class ChessPiece{
-      constructor(name, dim, pos, texturePath){
+      constructor(name, dim, pos, texturePath=null){
         this.xBoard = pos[0];
         this.yBoard = pos[1];
         this.zBoard = pos[2];
@@ -47,51 +51,99 @@
     class Game{
       constructor(){
         this.ref = new THREE.Object3D();
-        this.board = new ChessPiece("board", [boardWidth, boardWidth, boardHeight], [0, 8, 0], "textures/board.jpg");
-        // this.board = new ChessPiece([5,5,.2],4,4,"textures/chess.jpg");
-        this.Wrock1   = new ChessPiece("Wrock1",    [.2, .2, .2], [4, 4, boardHeight], "textures/white.png");
-        this.Wknight1 = new ChessPiece("Wknight1",  [.3, .3, .3], [4, 3, boardHeight], "textures/white.png");
-        this.Wbishop1 = new ChessPiece("Wbishop1",  [.4, .4, .4], [4, 2, boardHeight], "textures/white.png");
-        this.Wking    = new ChessPiece("Wking",     [.6, .6, .6], [4, 1, boardHeight], "textures/white.png");
-        this.Wqueen   = new ChessPiece("Wqueen",    [.5, .5, .5], [4, 0, boardHeight], "textures/white.png");
-        this.Wbishop2 = new ChessPiece("Wbishop2",  [.4, .4, .4], [4, -1, boardHeight], "textures/white.png");
-        this.Wknight2 = new ChessPiece("Wknight2",  [.3, .3, .3], [4, -2, boardHeight], "textures/white.png");
-        this.Wrock2   = new ChessPiece("Wrock2",    [.2, .2, .2], [4, -3, boardHeight], "textures/white.png");
-        this.Wpawn1   = new ChessPiece("Wpawn1",    [.1, .1, .1], [3, 4, boardHeight], "textures/white.png");
-        this.Wpawn2   = new ChessPiece("Wpawn2",    [.1, .1, .1], [3, 3, boardHeight], "textures/white.png");
-        this.Wpawn3   = new ChessPiece("Wpawn3",    [.1, .1, .1], [3, 2, boardHeight], "textures/white.png");
-        this.Wpawn4   = new ChessPiece("Wpawn4",    [.1, .1, .1], [3, 1, boardHeight], "textures/white.png");
-        this.Wpawn5   = new ChessPiece("Wpawn5",    [.1, .1, .1], [3, 0, boardHeight], "textures/white.png");
-        this.Wpawn6   = new ChessPiece("Wpawn6",    [.1, .1, .1], [3, -1, boardHeight], "textures/white.png");
-        this.Wpawn7   = new ChessPiece("Wpawn7",    [.1, .1, .1], [3, -2, boardHeight], "textures/white.png");
-        this.Wpawn8   = new ChessPiece("Wpawn8",    [.1, .1, .1], [3, -3, boardHeight], "textures/white.png");
+        this.board = new ChessPiece("board", [boardWidth, boardWidth, boardHeight], [0, 5, 0], "textures/board.jpg");
 
-        this.Brock1   = new ChessPiece("Brock1",    [.2, .2, .2], [-3, 4, boardHeight], "textures/black.png");
-        this.Bknight1 = new ChessPiece("Bknight1",  [.3, .3, .3], [-3, 3, boardHeight], "textures/black.png");
-        this.Bbishop1 = new ChessPiece("Bbishop1",  [.4, .4, .4], [-3, 2, boardHeight], "textures/black.png");
-        this.Bking    = new ChessPiece("Bking",     [.6, .6, .6], [-3, 1, boardHeight], "textures/black.png");
-        this.Bqueen   = new ChessPiece("Bqueen",    [.5, .5, .5], [-3, 0, boardHeight], "textures/black.png");
-        this.Bbishop2 = new ChessPiece("Bbishop2",  [.4, .4, .4], [-3, -1, boardHeight], "textures/black.png");
-        this.Bknight2 = new ChessPiece("Bknight2",  [.3, .3, .3], [-3, -2, boardHeight], "textures/black.png");
-        this.Brock2   = new ChessPiece("Brock2",    [.2, .2, .2], [-3, -3, boardHeight], "textures/black.png");
-        this.Bpawn1   = new ChessPiece("Bpawn1",    [.1, .1, .1], [-2, 4, boardHeight], "textures/black.png");
-        this.Bpawn2   = new ChessPiece("Bpawn2",    [.1, .1, .1], [-2, 3, boardHeight], "textures/black.png");
-        this.Bpawn3   = new ChessPiece("Bpawn3",    [.1, .1, .1], [-2, 2, boardHeight], "textures/black.png");
-        this.Bpawn4   = new ChessPiece("Bpawn4",    [.1, .1, .1], [-2, 1, boardHeight], "textures/black.png");
-        this.Bpawn5   = new ChessPiece("Bpawn5",    [.1, .1, .1], [-2, 0, boardHeight], "textures/black.png");
-        this.Bpawn6   = new ChessPiece("Bpawn6",    [.1, .1, .1], [-2, -1, boardHeight], "textures/black.png");
-        this.Bpawn7   = new ChessPiece("Bpawn7",    [.1, .1, .1], [-2, -2, boardHeight], "textures/black.png");
-        this.Bpawn8   = new ChessPiece("Bpawn8",    [.1, .1, .1], [-2, -3, boardHeight], "textures/black.png");
-        // console.log(this.board.position);
-        // console.log(this.king.object.position);
+        this.Wrock1   = new ChessPiece("Wrock1",    [.2, .2, .4], [8, 8, boardHeight], whiteTexture);
+        this.Wknight1 = new ChessPiece("Wknight1",  [.3, .3, .6], [8, 7, boardHeight], whiteTexture);
+        this.Wbishop1 = new ChessPiece("Wbishop1",  [.4, .4, .8], [8, 6, boardHeight], whiteTexture);
+        this.Wking    = new ChessPiece("Wking",     [.6, .6, 1.2], [8, 5, boardHeight], whiteTexture);
+        this.Wqueen   = new ChessPiece("Wqueen",    [.5, .5, 1.0], [8, 4, boardHeight], whiteTexture);
+        this.Wbishop2 = new ChessPiece("Wbishop2",  [.4, .4, .8], [8, 3, boardHeight], whiteTexture);
+        this.Wknight2 = new ChessPiece("Wknight2",  [.3, .3, .6], [8, 2, boardHeight], whiteTexture);
+        this.Wrock2   = new ChessPiece("Wrock2",    [.2, .2, .4], [8, 1, boardHeight], whiteTexture);
+        this.Wpawn1   = new ChessPiece("Wpawn1",    [.1, .1, .4], [7, 8, boardHeight], whiteTexture);
+        this.Wpawn2   = new ChessPiece("Wpawn2",    [.1, .1, .4], [7, 7, boardHeight], whiteTexture);
+        this.Wpawn3   = new ChessPiece("Wpawn3",    [.1, .1, .4], [7, 6, boardHeight], whiteTexture);
+        this.Wpawn4   = new ChessPiece("Wpawn4",    [.1, .1, .4], [7, 5, boardHeight], whiteTexture);
+        this.Wpawn5   = new ChessPiece("Wpawn5",    [.1, .1, .4], [7, 4, boardHeight], whiteTexture);
+        this.Wpawn6   = new ChessPiece("Wpawn6",    [.1, .1, .4], [7, 3, boardHeight], whiteTexture);
+        this.Wpawn7   = new ChessPiece("Wpawn7",    [.1, .1, .4], [7, 2, boardHeight], whiteTexture);
+        this.Wpawn8   = new ChessPiece("Wpawn8",    [.1, .1, .4], [7, 1, boardHeight], whiteTexture);
+
+        this.Brock1   = new ChessPiece("Brock1",    [.2, .2, .4], [1, 8, boardHeight], blackTexture);
+        this.Bknight1 = new ChessPiece("Bknight1",  [.3, .3, .6], [1, 7, boardHeight], blackTexture);
+        this.Bbishop1 = new ChessPiece("Bbishop1",  [.4, .4, .8], [1, 6, boardHeight], blackTexture);
+        this.Bking    = new ChessPiece("Bking",     [.6, .6, 1.2], [1, 5, boardHeight], blackTexture);
+        this.Bqueen   = new ChessPiece("Bqueen",    [.5, .5, 1.0], [1, 4, boardHeight], blackTexture);
+        this.Bbishop2 = new ChessPiece("Bbishop2",  [.4, .4, .8], [1, 3, boardHeight], blackTexture);
+        this.Bknight2 = new ChessPiece("Bknight2",  [.3, .3, .6], [1, 2, boardHeight], blackTexture);
+        this.Brock2   = new ChessPiece("Brock2",    [.2, .2, .4], [1, 1, boardHeight], blackTexture);
+        this.Bpawn1   = new ChessPiece("Bpawn1",    [.1, .1, .4], [2, 8, boardHeight], blackTexture);
+        this.Bpawn2   = new ChessPiece("Bpawn2",    [.1, .1, .4], [2, 7, boardHeight], blackTexture);
+        this.Bpawn3   = new ChessPiece("Bpawn3",    [.1, .1, .4], [2, 6, boardHeight], blackTexture);
+        this.Bpawn4   = new ChessPiece("Bpawn4",    [.1, .1, .4], [2, 5, boardHeight], blackTexture);
+        this.Bpawn5   = new ChessPiece("Bpawn5",    [.1, .1, .4], [2, 4, boardHeight], blackTexture);
+        this.Bpawn6   = new ChessPiece("Bpawn6",    [.1, .1, .4], [2, 3, boardHeight], blackTexture);
+        this.Bpawn7   = new ChessPiece("Bpawn7",    [.1, .1, .4], [2, 2, boardHeight], blackTexture);
+        this.Bpawn8   = new ChessPiece("Bpawn8",    [.1, .1, .4], [2, 1, boardHeight], blackTexture);
+
+        this.pieces = [this.Wking, this.Wqueen, this.Wbishop1, this.Wbishop2, this.Wknight1, this.Wknight2,
+          this.Wrock1, this.Wrock2, this.Wpawn1, this.Wpawn2, this.Wpawn3, this.Wpawn4, this.Wpawn5, this.Wpawn6,
+          this.Wpawn7, this.Wpawn8, this.Bking, this.Bqueen, this.Bbishop1, this.Bbishop2, this.Bknight1,
+          this.Bknight2, this.Brock1, this.Brock2, this.Bpawn1, this.Bpawn2, this.Bpawn3, this.Bpawn4, this.Bpawn5,
+          this.Bpawn6, this.Bpawn7, this.Bpawn8];
+
+        this.anchors = [];
+        for(var i=1; i<=8; i++){
+          for(var j=1; j<=8; j++){
+            this.anchors.push(new ChessPiece("anchor"+(i+(j-1)*8), [.2,.2,.05], [i,j,boardHeight],"textures/white.png"));
+          }
+        }
+
+        this.startPos = [4,4];
+        this.endPos = [4,4];
+
+        // definition de l'arborescence
         this.ref.add(this.board.object);
-        this.pieces = [this.Wking, this.Wqueen, this.Wbishop1, this.Wbishop2, this.Wknight1, this.Wknight2, this.Wrock1, this.Wrock2,
-                      this.Wpawn1, this.Wpawn2, this.Wpawn3, this.Wpawn4, this.Wpawn5, this.Wpawn6, this.Wpawn7, this.Wpawn8,
-                      this.Bking, this.Bqueen, this.Bbishop1, this.Bbishop2, this.Bknight1, this.Bknight2, this.Brock1, this.Brock2,
-                      this.Bpawn1, this.Bpawn2, this.Bpawn3, this.Bpawn4, this.Bpawn5, this.Bpawn6, this.Bpawn7, this.Bpawn8];
-        var i;
-        for(i=0; i<this.pieces.length; ++i){
+        this.board.object.add(this.light);
+
+        for(var i=0; i<this.pieces.length; ++i){
           this.board.object.add(this.pieces[i].object);
+        }
+        for(var i=0; i<this.anchors.length;++i){
+          this.board.object.add(this.anchors[i].object);
+        }
+      }
+
+      getPiece(x,y){
+        for(var i=0; i<this.pieces.length; ++i){
+          if(this.pieces[i].xBoard == x && this.pieces[i].yBoard == y){
+            return this.pieces[i];
+          }
+        }
+      }
+      getAnchor(x,y){
+        for(var i=0; i<this.anchors.length; ++i){
+          if(this.anchors[i].xBoard == x && this.anchors[i].yBoard == y){
+            return this.anchors[i];
+          }
+        }
+      }
+
+      moveSelection(selection, direction){
+        switch(direction){
+          case "left":
+            selection[0] -= selection[0] != 1 ? 1 : 0;
+            break;
+          case "up":
+            selection[1] += selection[1] != 8 ? 1 : 0;
+            break;
+          case "right":
+            selection[0] += selection[0] != 8 ? 1 : 0;
+            break;
+          case "down":
+            selection[1] -= selection[1] != 1 ? 1 : 0;
+            break;
         }
       }
     }
@@ -219,8 +271,6 @@
       scene1.add(texture);
 
       scene2.add(game.ref);
-
-      //console.log(scene2);
     };
 
     function createTexture(){
@@ -238,39 +288,120 @@
     };
 
     function updateScenes(markers){
-      var corners, corner, pose, i;
-      var marker, found;
+      var corner, pose, i;
+      // marker17 : placement du plateau
+      // marker321 : selection de la case de départ
+      // marker 500 : selecion de la case d'arrivée
+      //marker 160 : validation
+      var corners17, corners160, corners321, corners500;
+      // var closestAnchor;
+      var startAnchor;
+      var endAnchor;
 
-      found = false;
+      // Detection des marqueurs
       if (markers.length > 0){
         for(i = 0; i < markers.length; ++ i){
           if (markers[i].id == 17){
-            found = true;
-            corners = markers[i].corners;
+            corners17 = markers[i].corners;
+          }
+          else if (markers[i].id == 160){
+            corners160 = markers[i].corners;
+          }
+          else if (markers[i].id == 321){
+            corners321 = markers[i].corners;
+          }
+          else if (markers[i].id == 500){
+            corners500 = markers[i].corners;
           }
         }
       }
 
-      if(found){
-        for (i = 0; i < corners.length; ++ i){
-          corner = corners[i];
-          corner.x = corner.x - (canvas.width / 2);
-          corner.y = (canvas.height / 2) - corner.y;
+      var markersCorners = [corners17, corners160, corners321, corners500];
+      for(i=0; i<markersCorners.length; ++i){
+        if(markersCorners[i]){
+          for (j = 0; j < markersCorners[i].length; ++j){
+            corner = markersCorners[i][j];
+            corner.x = corner.x - (canvas.width / 2);
+            corner.y = (canvas.height / 2) - corner.y;
+          }
         }
+      }
 
-        pose = posit.pose(corners);
 
+      // Mise a jour des positions des composants en réalité virtuelle
+      if(corners17){
+        pose = posit.pose(corners17);
         updateBasis(game.ref, pose.bestRotation, pose.bestTranslation);
-        // var basis = ref.matrix.makeBasis;
-        // updateBasis(basisObject, pose.bestRotation, pose.bestTranslation);
-        // updateBasis(game.board.object, pose.bestRotation, pose.bestTranslation);
-        // updateBasis(game.king.object, pose.bestRotation, pose.bestTranslation);
         updateBoard(game.board);
-        var i;
-        for(i=0; i<game.pieces.length; ++i){
+        for(var i=0; i<game.anchors.length; ++i){
+          updatePiece(game.anchors[i]);
+        }
+        for(var i=0; i<game.pieces.length; ++i){
           updatePiece(game.pieces[i]);
         }
-        //console.log(scene2);
+      }
+
+
+      document.onkeydown = function(e) {
+        // Selection du point de départ
+        if(corners321){
+          // Malheureusement le code suivant de detection de proximité aux cases ne fonctionne pas, on s'est donc rabbatu sur la selection au clavier
+          // pose = posit.pose(corners321);
+          // closestAnchor = findClosestAnchor(game, pose.bestTranslation);
+          // changeTexture(closestAnchor.object, "textures/green.png");
+          startAnchor = game.getAnchor(game.startPos[0],game.startPos[1]);
+          if([37,38,39,40].includes(e.keyCode)){
+            // reset the color to black if we change the selection
+            resetTexture(startAnchor, "startPos");
+
+            switch (e.keyCode) {
+                case 37: //left
+                    game.moveSelection(game.startPos,"left");
+                    break;
+                case 38: //up
+                    game.moveSelection(game.startPos,"up");
+                    break;
+                case 39: //right
+                    game.moveSelection(game.startPos,"right");
+                    break;
+                case 40: //down
+                    game.moveSelection(game.startPos,"down");
+                    break;
+            }
+            startAnchor = game.getAnchor(game.startPos[0],game.startPos[1]);
+            changeTexture(startAnchor.object, "textures/start.png");
+          }
+        }
+        // Selection du point d'arrivée
+        if(corners500 && !corners321){
+          endAnchor = game.getAnchor(game.endPos[0],game.endPos[1]);
+          if([37,38,39,40].includes(e.keyCode)){
+            // reset the color to black if we change the selection
+            resetTexture(endAnchor, "endPos");
+
+            switch (e.keyCode) {
+                case 37: //left
+                    game.moveSelection(game.endPos,"left");
+                    break;
+                case 38: //up
+                    game.moveSelection(game.endPos,"up");
+                    break;
+                case 39: //right
+                    game.moveSelection(game.endPos,"right");
+                    break;
+                case 40: //down
+                    game.moveSelection(game.endPos,"down");
+                    break;
+            }
+            endAnchor = game.getAnchor(game.endPos[0],game.endPos[1]);
+            changeTexture(endAnchor.object, "textures/end.png");
+          }
+        }
+      }
+
+      // Validation du movement
+      if(corners160){
+
       }
 
       texture.children[0].material.map.needsUpdate = true;
@@ -291,8 +422,8 @@
     };
 
     function updatePiece(piece){
-      piece.object.position.x = (piece.xBoard-.5)*unitLength;
-      piece.object.position.y = (piece.yBoard-.5)*unitLength;
+      piece.object.position.x = (piece.xBoard-4.5)*unitLength;
+      piece.object.position.y = (piece.yBoard-4.5)*unitLength;
       piece.object.position.z = piece.zBoard*unitLength;
     }
 
@@ -302,25 +433,39 @@
       piece.object.position.z = piece.zBoard*unitLength;
     }
 
-    function updateTransform(piece, rotation, translation){
-      var actualTranslation = JSON.parse(JSON.stringify(translation));
-      console.log("translation " + translation);
-      console.log(piece.object);
-      piece.object.scale.x = scale;
-      piece.object.scale.y = scale;
-      piece.object.scale.z = scale;
+    function findClosestAnchor(game, translation){
+      var minDistance, distance, anchorPos, minAnchor;
+      selectionPos = new THREE.Vector3(translation[0], translation[1], translation[2]);
+      anchorPos = new THREE.Vector3();
+      for(var i=0; i<game.anchors.length; ++i){
+        anchorPos.setFromMatrixPosition( game.anchors[i].object.matrixWorld );
+        distance =  anchorPos.distanceTo(selectionPos);
+        // console.log(selectionPos.toArray() + " || " + anchorPos.toArray() + " || " + distance);
+        if(!minDistance || distance < minDistance){
+          minDistance = distance;
+          minAnchor = game.anchors[i];
+        }
+      }
+      return minAnchor;
+    }
 
-      piece.object.rotation.x = -Math.asin(-rotation[1][2]);
-      piece.object.rotation.y = -Math.atan2(rotation[0][2], rotation[2][2]);
-      piece.object.rotation.z = Math.atan2(rotation[1][0], rotation[1][1]);
+    function changeTexture(object, src){
+      object.children[0].material.map = THREE.ImageUtils.loadTexture(src);
+      object.children[0].material.needsUpdate = true;
+    }
 
-      piece.object.position.x = actualTranslation[0];
-      piece.object.position.y = actualTranslation[1];
-      piece.object.position.z = -actualTranslation[2];
-      // piece.object.position.x = translation[0];
-      // piece.object.position.y = translation[1];
-      // piece.object.position.z = -translation[2];
-    };
+    function resetTexture(anchor, posFrom){
+      // changeTexture(anchor.object, "textures/anchor.png");
+      if(posFrom != "startPos" && anchor.xBoard == game.startPos[0] && anchor.yBoard == game.startPos[1]){
+        changeTexture(anchor.object, "textures/start.png");
+      }
+      else if(posFrom != "endPos" && anchor.xBoard == game.endPos[0] && anchor.yBoard == game.endPos[1]){
+        changeTexture(anchor.object, "textures/end.png");
+      }
+      else{
+        changeTexture(anchor.object, "textures/white.png");
+      }
+    }
 
     window.onload = onLoad;
   </script>
